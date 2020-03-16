@@ -25,3 +25,31 @@ Here's what the data look like in `R`:
 knitr::kable(head(train))
 summary(train)
 ```
+
+Let's check out some boxplots of the continuously-valued variables (PassengerId, Age, and Fare) grouped by survival status:
+
+```{r boxplots, fig.width=7, fig.height=3}
+# shape data and make boxplots 
+train %>%
+  select(Survived, PassengerId, Age, Fare) %>%
+  # outlier here stretches out the scale out for the "Fare" subplot 
+  filter(Fare < 300) %>%
+  # reshape data
+  gather("variable", "value", -Survived) %>%
+  # make factors for easier ggplot functionality
+  mutate(Status = factor(ifelse(Survived, "Survived", "RIP")),
+         variable = factor(variable)) %>%
+  # plot that ish
+  ggplot(aes(x = Status, y = value, fill = Status)) + 
+    geom_boxplot() + 
+    scale_fill_manual(values = c("#FC4E07", "#00AFBB")) + #colors
+    facet_wrap(~variable, scales = "free_y") + # facet by variable
+    # theme stuff, remove legend and vertical gridlines
+    theme_minimal() + 
+    theme(legend.position = "none",
+          panel.grid.major.x = element_blank()) 
+
+```
+
+Looks like Age and PassengerId don't appear to have much effect on survival directly, which is kind of surprising and unsurprising to me, respectfully. PassengerId is really only included here for fun, and I suppose it suggests that the sort of "order" of the training data is apparently random. It does look like the holders of more expensive tickets had better chances though, which makes sense. 
+
